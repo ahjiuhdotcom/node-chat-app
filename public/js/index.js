@@ -39,4 +39,34 @@ socket.on('disconnect', function() {
 
 socket.on('newMessage', function(message) {
     console.log('newMessage', message);
+    
+    // create a html element <li>
+    var li = jQuery('<li></li>');
+    // put the text into it
+    li.text(`${message.from}: ${message.text}`);
+    // append it to dom
+    jQuery('#messages').append(li);
+});
+
+/*
+// EXAMPLE OF ADDING ACKNOWLEDGEMENT
+// 3rd argument (callback function) will be run when
+// server aknowledge the message
+socket.emit('createMessage', {
+    from: 'Frank',
+    text: 'Hi'
+}, function(data){
+    console.log('Got it!', data);
+});
+*/
+
+jQuery('#message-form').on('submit', function(e) {
+    e.preventDefault();
+    
+    socket.emit('createMessage', {
+        from: 'User',
+        text: jQuery('[name=message]').val()
+    }, function() {
+        
+    });
 });

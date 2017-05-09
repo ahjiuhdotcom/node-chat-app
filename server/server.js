@@ -30,7 +30,9 @@ io.on('connection', (socket) => {
        createdAt: 123123
     });
     */
-    socket.on('createMessage', (message) => {
+    
+    // 2nd argument 'callback' to aknowledge that server receive the request 
+    socket.on('createMessage', (message, callback) => {
         console.log('createMessage', message);
         
         // 'socket.io' emit an event to single connection
@@ -38,9 +40,9 @@ io.on('connection', (socket) => {
         // overall mechanism: when receive a message from certain client,
         // emit it to all the rest of the client who maintain the connection
         io.emit('newMessage', generateMessage(message.from, message.text));
-        
+        callback('This is from server');
         /*
-        // ''.broadcast': emit an event to all connected client 
+        // '.broadcast': emit an event to all connected client 
         // except user who sending the message
         socket.broadcast.emit('newMessage', {
             from: message.from,
