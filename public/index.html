@@ -8,22 +8,6 @@
         <p>Welcome to the chat app</p>
         
         <script src="/socket.io/socket.io.js"></script>
-        <script>
-            // 'io' method make available after with load in the script above
-            // initiate a connection and keep the it open for client side
-            var socket = io();
-            
-            // 'connect' is built in event
-            // which emitted when connected to server
-            socket.on('connect', () => {
-                console.log('Connected to server');
-            });
-            
-            // 'disconnect' is built in event
-            // which emitted when disconnected to server
-            socket.on('disconnect', () => {
-                console.log('Disconnected from server')
-            });
-        </script>
+        <script src="/js/index.js"></script>
     </body>
 </html>

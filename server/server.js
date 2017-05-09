@@ -17,6 +17,41 @@ app.use(express.static(publicPath));
 // which emitted whenever there is new client connected to the server
 io.on('connection', (socket) => {
     console.log('New user connected');
+    /*
+    socket.emit('newMessage', {
+       from: 'John',
+       text: 'See you then',
+       createdAt: 123123
+    });
+    */
+    socket.on('createMessage', (message) => {
+        console.log('createMessage', message);
+        // 'socket.io' emit an event to single connection
+        // 'io.emit' emit an event to every single connection
+        // overall mechanism: when receive a message from certain client,
+        // emit it to all the rest of the client who maintain the connection
+        io.emit('newMessage', {
+            from: message.from,
+            text: message.text,
+            createdAt: new Date().getTime()
+        });
+    });
+    
+    /*
+    // EXAMPLE EMAIL APP
+    // emit custom event
+    // important: name of the custom event for 'emit' and 'on' must be same
+    socket.emit('newEmail', {
+        from: 'mike@example.com',
+        text: 'Hey, What is going on',
+        createdAt: 123
+    });
+    
+    // custom event
+    socket.on('createEmail', (newEmail) => {
+       console.log('createEmail', newEmail); 
+    });
+    */
     
     // 'disconnect' is io built in event
     // which emitted whenever there is new client disconnected from the server
