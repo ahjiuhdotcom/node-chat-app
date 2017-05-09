@@ -17,6 +17,19 @@ app.use(express.static(publicPath));
 // which emitted whenever there is new client connected to the server
 io.on('connection', (socket) => {
     console.log('New user connected');
+    
+    socket.emit('newMessage', {
+       from: 'Admin',
+       text: 'Welcome to the chat app',
+       createdAt: new Date().getTime()
+    });
+    
+    socket.broadcast.emit('newMessage', {
+        from: 'Admin',
+        text: 'New user joined',
+        createdAt: new Date().getTime()
+    })
+    
     /*
     socket.emit('newMessage', {
        from: 'John',
@@ -26,6 +39,7 @@ io.on('connection', (socket) => {
     */
     socket.on('createMessage', (message) => {
         console.log('createMessage', message);
+        
         // 'socket.io' emit an event to single connection
         // 'io.emit' emit an event to every single connection
         // overall mechanism: when receive a message from certain client,
@@ -35,6 +49,16 @@ io.on('connection', (socket) => {
             text: message.text,
             createdAt: new Date().getTime()
         });
+        
+        /*
+        // ''.broadcast': emit an event to all connected client 
+        // except user who sending the message
+        socket.broadcast.emit('newMessage', {
+            from: message.from,
+            text: message.text,
+            createdAt: new Date().getTime()
+        });
+        */
     });
     
     /*
