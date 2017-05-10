@@ -40,7 +40,8 @@ io.on('connection', (socket) => {
         // overall mechanism: when receive a message from certain client,
         // emit it to all the rest of the client who maintain the connection
         io.emit('newMessage', generateMessage(message.from, message.text));
-        callback('This is from server');
+        // callback('This is from server');
+        callback();
         
         /*
         // Example on 'broadcast'
