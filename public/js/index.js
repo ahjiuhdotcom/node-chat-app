@@ -2,6 +2,32 @@
 // initiate a connection and keep the it open for client side
 var socket = io();
 
+function scrollToBottom() {
+   // Selectors
+   var messages = jQuery('#messages');
+   var newMessage = messages.children('li:last-child');
+   
+   // Heights
+   // 'clientHeight', 'scrollTop', 'scrollHeight' are build in props
+   // for html element, which is selected using jQuary method
+   var clientHeight = messages.prop('clientHeight');
+   var scrollTop = messages.prop('scrollTop');
+   var scrollHeight = messages.prop('scrollHeight');
+   var newMessageHeight = newMessage.innerHeight();
+   var lastMessageHeight = newMessage.prev().innerHeight();
+   
+   // if we are at the very bottom of the list and new message come in:
+   // clientHeight + scrollTop + newMessageHeight = scrollHeight => it scroll
+   // if we are at the somewhere middle of last message, when new message come in:
+   // clientHeight + scrollTop + newMessageHeight < scrollHeight => no scrolling
+   // Thus to make it auto scroll in this position, we must add in lastMessageHeight too
+   if(clientHeight + scrollTop + newMessageHeight + lastMessageHeight >= scrollHeight) {
+       // messages.scrollTop() is jQuery method
+       messages.scrollTop(scrollHeight);
+   }
+}
+
+
 // 'connect' is built in event
 // which emitted when connected to server
 socket.on('connect', function() {
@@ -49,7 +75,7 @@ socket.on('newMessage', function(message) {
     });
     
     jQuery('#messages').append(html);
-    
+    scrollToBottom();
     
     /*
     // Substituted with mustache.js templating file
@@ -77,6 +103,7 @@ socket.on('newLocationMessage', function(message) {
     
     jQuery('#messages').append(html);
     
+    scrollToBottom();
     /*
     var formattedTime = moment(message.createdAt).format('h:mm a');
     var li = jQuery('<li></li>');
