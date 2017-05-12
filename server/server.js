@@ -4,13 +4,17 @@ const express = require('express');
 const socketIO = require('socket.io');
 
 const {generateMessage, generateLocationMessage} = require('./utils/message');
+const {isRealString} = require('./utils/validation');
+const {Users} = require('./utils/users');
 const publicPath = path.join(__dirname, '../public');
 const port = process.env.PORT || 3000;
+
 var app = express();
 // create a custom http server instead of use default express server
 // so that we can create server with socketIO
 var server = http.createServer(app); // change the app.listen() to server.listen()
 var io = socketIO(server);
+var users = new Users();
 
 app.use(express.static(publicPath));
 
@@ -19,9 +23,28 @@ app.use(express.static(publicPath));
 io.on('connection', (socket) => {
     console.log('New user connected');
     
-    socket.emit('newMessage', generateMessage('Admin', 'Welcome to the chat app'));
-    
-    socket.broadcast.emit('newMessage', generateMessage('Admin', 'New user joined'));
+    socket.on('join', (params, callback) => {
+       if (!isRealString(params.name) || !isRealString(params.room)) {
+           return callback('Name and room name are required');
+       } 
+       
+       // join the chat room
+       socket.join(params.room);
+       // remove the user from any potential previous room
+       users.removeUser(socket.id);
+       users.addUser(socket.id, params.name, params.room);
+       
+       /*
+       // leave the chat room
+       socket.leave(params.room);
+       */
+       
+        io.to(params.room).emit('updateUserList', users.getUserList(params.room));       
+        socket.emit('newMessage', generateMessage('Admin', 'Welcome to the chat app'));
+        socket.broadcast.to(params.room).emit('newMessage', generateMessage('Admin', `${params.name} has joined`));
+       
+       callback();
+    });
     
     /*
     socket.emit('newMessage', {
@@ -79,6 +102,12 @@ io.on('connection', (socket) => {
     // which emitted whenever there is new client disconnected from the server
     socket.on('disconnect', () => {
         console.log('User was disconnected');
+        var user = users.removeUser(socket.id);
+        
+        if (user) {
+            io.to(user.room).emit('updateUserList', users.getUserList(user.room));
+            io.to(user.room).emit('newMessage', generateMessage('Admin', `${user.name} has left`));
+        }
     });
 });
 
@@ -107,4 +136,13 @@ Client side:
 1. load in socket.io script: '<script src="/socket.io/socket.io.js"></script>'
 2. then in the following script, create socket by 'var socket = io();'
 3. socket is created. We can call/listen to event by 'socket.'
+*/
+
+/*
+EMIT EVENT
+1. io.emit: emit an event to all connected user. 
+Can chaining the method so that only emit to specific xxx room by adding '.to('xxx')'
+2. socket.broadcast.emit: emit an event to all connected user except user himself. 
+Can chaining the method so that only emit to specific xxx room by adding '.to('xxx')'
+3. socket.emit: emit an event to specific user e.g. inside "io.on('connection', (socket) => {}"
 */
