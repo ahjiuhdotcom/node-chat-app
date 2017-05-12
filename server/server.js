@@ -21,7 +21,7 @@ app.use(express.static(publicPath));
 // 'connection' is io built in event
 // which emitted whenever there is new client connected to the server
 io.on('connection', (socket) => {
-    console.log('New user connected');
+    // console.log('New user connected');
     
     socket.on('join', (params, callback) => {
        if (!isRealString(params.name) || !isRealString(params.room)) {
@@ -56,14 +56,17 @@ io.on('connection', (socket) => {
     
     // 2nd argument 'callback' to aknowledge that server receive the request 
     socket.on('createMessage', (message, callback) => {
-        console.log('createMessage', message);
+        var user = users.getUser(socket.id);
         
-        // 'socket.io' emit an event to single connection
-        // 'io.emit' emit an event to every single connection
-        // overall mechanism: when receive a message from certain client,
-        // emit it to all the rest of the client who maintain the connection
-        io.emit('newMessage', generateMessage(message.from, message.text));
-        // callback('This is from server');
+        if (user && isRealString(message.text)) {
+            // 'socket.io' emit an event to single connection
+            // 'io.emit' emit an event to every single connection
+            // overall mechanism: when receive a message from certain client,
+            // emit it to all the rest of the client who maintain the connection
+            io.to(user.room).emit('newMessage', generateMessage(user.name, message.text));
+            // callback('This is from server');
+        }
+        
         callback();
         
         /*
@@ -79,7 +82,12 @@ io.on('connection', (socket) => {
     });
     
     socket.on('createLocationMessage', (coords) => {
-       io.emit('newLocationMessage', generateLocationMessage('Admin', coords.latitude, coords.longitude)); 
+       var user = users.getUser(socket.id); 
+       
+       if(user) {
+           io.to(user.room).emit('newLocationMessage', generateLocationMessage(user.name, coords.latitude, coords.longitude)); 
+       } 
+       
     });
     
     /*
@@ -101,7 +109,7 @@ io.on('connection', (socket) => {
     // 'disconnect' is io built in event
     // which emitted whenever there is new client disconnected from the server
     socket.on('disconnect', () => {
-        console.log('User was disconnected');
+        // console.log('User was disconnected');
         var user = users.removeUser(socket.id);
         
         if (user) {
